@@ -59,7 +59,11 @@ fun interp (NumExpr n) env = NumVal n
        let
          val args = map (fn e => interp e env) argExprs
          (* Use ListPair.zip to pair each parameter with its corresponding argument value *)
-         val paramArgPairs = zip (params, args)
+         val paramArgPairs = 
+            if listsHaveEqualLength (params, args) then
+              ListPair.zip (params, args)
+            else
+              raise Fail "OAZO: Parameter and argument lists have unequal lengths"
          (* Extend the closureEnv with these new bindings *)
          val newEnv = paramArgPairs @ closureEnv
        in
