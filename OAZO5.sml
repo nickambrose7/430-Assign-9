@@ -57,7 +57,7 @@ fun interp (NumExpr n) env = NumVal n
     case interp fnExpr env of
        Closure (params, body, closureEnv) =>
        let
-         val args = map (fn e => interp e env) argExprs
+         val args = map (fn e => interp(e env)) argExprs
          (* Use ListPair.zip to pair each parameter with its corresponding argument value *)
          val paramArgPairs = 
             if length(params) = length(args) then
@@ -69,7 +69,7 @@ fun interp (NumExpr n) env = NumVal n
        in
          interp body newEnv
        end
-       (* | PrimOp op => op (map (fn e => interp e env) argExprs) *)
+       (* | PrimOp op => op (map (fn e => interp(e env)) argExprs) *)
        | _ => raise Fail "OAZO: Invalid function application"
 
 (* Write some simple test cases for interp *)
