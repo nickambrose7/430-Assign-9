@@ -45,19 +45,19 @@ val initialEnv = [
 
 open ListPair;
 
-fun interp (NumExpr n) env = NumVal n
-  | interp (StringExpr s) env = StringVal s
-  | interp (IfExpr (cond, thenExpr, elseExpr)) env =
-    (case interp cond env of
-         BoolVal true => interp thenExpr env
-       | BoolVal false => interp elseExpr env
+fun interp ((NumExpr n), env) = NumVal n
+  | interp ((StringExpr s), env) = StringVal s
+  | interp ((IfExpr (cond, thenExpr, elseExpr)), env) =
+    (case interp (cond, env) of
+         BoolVal true => interp (thenExpr, env)
+       | BoolVal false => interp (elseExpr, env)
        | _ => raise Fail "OAZO: Invalid condition for if")
-  | interp (AnonExpr (params, body)) env = Closure (params, body, env)
-  | interp (AppExpr (fnExpr, argExprs)) env =
-    case interp fnExpr env of
+  | interp ((AnonExpr (params, body)), env) = Closure (params, body, env)
+  | interp ((AppExpr (fnExpr, argExprs)), env) =
+    case interp (fnExpr, env) of
        Closure (params, body, closureEnv) =>
        let
-         val args = map (fn e => interp(e env)) argExprs
+         val args = map (fn (e,c) => interp(e, env)) (argExprs, env)
          (* Use ListPair.zip to pair each parameter with its corresponding argument value *)
          val paramArgPairs = 
             if length(params) = length(args) then
@@ -67,31 +67,31 @@ fun interp (NumExpr n) env = NumVal n
          (* Extend the closureEnv with these new bindings *)
          val newEnv = paramArgPairs @ closureEnv
        in
-         interp body newEnv
+         interp (body, newEnv)
        end
        (* | PrimOp op => op (map (fn e => interp(e env)) argExprs) *)
        | _ => raise Fail "OAZO: Invalid function application"
 
 (* Write some simple test cases for interp *)
 fun testInterp () =
-    let val result = interp (NumExpr 42.0) initialEnv
+    let val result = interp ((NumExpr 42.0), initialEnv)
     in print (serialize result) end
 
 fun testInterp2 () =
-    let val result = interp (AppExpr (VarExpr "+", [NumExpr 40.0, NumExpr 2.0])) initialEnv
+    let val result = interp ((AppExpr (VarExpr "+", [NumExpr 40.0, NumExpr 2.0])) , initialEnv)
     in print (serialize result) end
 
 (* fun testInterp3 () =
-    let val result = interp (AppExpr (VarExpr "error", [NumExpr 42.0])) initialEnv
+    let val result = interp ((AppExpr (VarExpr "error", [NumExpr 42.0])), initialEnv)
     in serialize result
     handle Fail msg => "OAZO: " ^ msg *)
 
 fun testInterp4 () =
-    let val result = interp (LetExpr ([("x", NumExpr 42.0)], VarExpr "x")) initialEnv
+    let val result = interp ((LetExpr ([("x", NumExpr 42.0)], VarExpr "x")), initialEnv)
     in serialize result end
 
 
 fun topInterp expr =
-    let val result = interp expr initialEnv
+    let val result = interp (expr, initialEnv)
     in serialize result end
     handle Fail msg => "OAZO: " ^ msg
