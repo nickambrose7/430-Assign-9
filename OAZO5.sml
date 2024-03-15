@@ -60,7 +60,7 @@ fun interp (NumExpr n) env = NumVal n
          val args = map (fn e => interp e env) argExprs
          (* Use ListPair.zip to pair each parameter with its corresponding argument value *)
          val paramArgPairs = 
-            if listsHaveEqualLength (params, args) then
+            if length(params) = length(args) then
               ListPair.zip (params, args)
             else
               raise Fail "OAZO: Parameter and argument lists have unequal lengths"
